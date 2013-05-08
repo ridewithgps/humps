@@ -30,6 +30,11 @@ after :deploy do
   deploy.cleanup
 end
 
+after "deploy:update_code" do
+  %w{/log}.each do |file|
+    run "ln -nfs #{shared_path}#{file} #{release_path}/server#{file}"
+  end
+end
 
 namespace :bluepill do
   task :stop, :roles => :app, :on_error => :continue do

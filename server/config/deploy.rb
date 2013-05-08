@@ -37,7 +37,7 @@ namespace :bluepill do
   end
 
   task :start, :roles => :app do
-    run "bluepill load #{current_path}/config/bluepill/humps.rb --no-privilege"
+    run "bluepill load #{current_path}/server/config/bluepill/humps.rb --no-privilege"
   end
 end
 

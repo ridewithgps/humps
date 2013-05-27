@@ -1,0 +1,30 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    json (1.7.7)
+    kgio (2.6.0)
+    pg (0.15.0)
+    rack (1.5.2)
+    rack-protection (1.5.0)
+      rack
+    raindrops (0.10.0)
+    sinatra (1.4.2)
+      rack (~> 1.5, >= 1.5.2)
+      rack-protection (~> 1.4)
+      tilt (~> 1.3, >= 1.3.4)
+    tilt (1.3.6)
+    unicorn (4.0.1)
+      kgio (~> 2.4)
+      rack
+      raindrops (~> 0.6)
+    yajl-ruby (1.1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  json
+  pg
+  sinatra
+  unicorn
+  yajl-ruby

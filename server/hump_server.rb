@@ -1,17 +1,13 @@
-require '../lib/humps.rb'
-
 class HumpServer < Sinatra::Base
   configure do
-    def db_connect
-      db = settings.db[settings.environment.to_s]
-      PG.connect(
-        hostaddr: db['host'],
-        port: db['port'],
-        user: db['user'],
-        dbname: db['name']
-      )
-    end
-    set :conn, db_connect()
+    db_settings = YAML.load(File.read('config/pg.yml'))
+    db = db_settings[settings.environment.to_s]
+    set :conn, PG.connect(
+      hostaddr: db['host'],
+      port: db['port'],
+      user: db['user'],
+      dbname: db['name']
+    )
   end
 
   get '/' do
@@ -73,10 +69,10 @@ class HumpServer < Sinatra::Base
 
     sql = "SELECT tzid FROM timezone WHERE ST_Within(ST_SetSRID(ST_Point(#{lng}, #{lat}), 4326), geom);"
     begin
-      result = conn.exec(sql).first
+      result = settings.conn.exec(sql).first
     rescue
-      conn.reset
-      result = conn.exec(sql).first
+      settings.conn.reset
+      result = settings.conn.exec(sql).first
     end
     response = if result
       {tzid: result['tzid']}

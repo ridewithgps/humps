@@ -31,7 +31,7 @@ after :deploy do
 end
 
 after "deploy:update_code" do
-  %w{/log}.each do |file|
+  %w{/log /tmp}.each do |file|
     run "ln -nfs #{shared_path}#{file} #{release_path}/server#{file}"
   end
 end

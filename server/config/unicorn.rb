@@ -10,7 +10,7 @@ timeout 20
 
 # Listen on a Unix data socket
 #listen '/home/kingcu/ridewithgps/tmp/sockets/unicorn.sock', :backlog => 1024
-listen '0.0.0.0:3006', :tcp_nopush => true, :backlog => 1024
+listen '0.0.0.0:4002', :tcp_nopush => true, :backlog => 1024
 
 pid File.join(File.dirname(__FILE__), '../tmp/pids/unicorn.pid')
 

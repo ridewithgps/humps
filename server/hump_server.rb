@@ -27,6 +27,23 @@ class HumpServer < Sinatra::Base
     grid.to_json
   end
 
+  # JSONP endpoint for the new threedee viewer
+  get '/10m_grid' do
+    min_lng = params[:min_lng].to_f
+    min_lat = params[:min_lat].to_f
+    max_lng = params[:max_lng].to_f
+    max_lat = params[:max_lat].to_f
+    num_x = params[:num_x].to_i
+    num_y = params[:num_y].to_i
+    callback = params[:callback]
+
+    grid = Humps.get_grid(min_lng, min_lat, max_lng, max_lat, num_x, num_y)
+
+    content_type :js
+    return "#{callback}(#{grid.to_json})"
+
+  end
+
   post '/10m_points' do
     lats = params[:lats].split(',').collect { |n| n.to_f }
     lngs = params[:lngs].split(',').collect { |n| n.to_f }

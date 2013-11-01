@@ -6,7 +6,7 @@ stdout_path File.join(File.dirname(__FILE__), '../log/unicorn.stdout.log')
 preload_app true
 
 # Restart any workers that haven't responded in 30 seconds
-timeout 20
+timeout 40
 
 # Listen on a Unix data socket
 #listen '/home/kingcu/ridewithgps/tmp/sockets/unicorn.sock', :backlog => 1024

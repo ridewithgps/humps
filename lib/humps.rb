@@ -313,7 +313,7 @@ class Humps
       #a tile may be 46.999861.  So we have to offset our number by the remainder.
       x_offset = x.floor.abs
       y_offset = y.floor.abs
-      fn_base = "#{aster_path}ASTGTM_#{n}%02d#{e}%03d_dem" % [y_offset, x_offset]
+      fn_base = "#{aster_path}/ASTGTM_#{n}%02d#{e}%03d_dem" % [y_offset, x_offset]
     when :srtm
       #these aren't that magical, we have a 5 degree tile system so we have to
       #do a little math to make sure we chunk by degrees of five.  The magic looking
@@ -323,12 +323,12 @@ class Humps
       #filey = 24 - ((y + 60.0004168) / 5.0).floor
       filex = ((x + 180 + (5/6000.0)) / 5.0).ceil
       filey = (24 - ((y + 60 + (5/6000.0)) / 5.0)).ceil
-      fn_base = "#{srtm_path}srtm_%.2d_%.2d" % [filex, filey]
+      fn_base = "#{srtm_path}/srtm_%.2d_%.2d" % [filex, filey]
     when :ned
       return nil if x > 0 || y < 0 #we only have a certain range in the NED
       x_offset = x.abs.ceil
       y_offset = y.abs.ceil
-      fn_base = ned_path + "dem#{x_offset}#{y_offset}"
+      fn_base = "#{ned_path}/dem#{x_offset}#{y_offset}"
     else
       return nil
     end

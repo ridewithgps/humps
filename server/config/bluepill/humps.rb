@@ -4,7 +4,7 @@ uni_path = "/var/www/humps/current/server/config"
 require "#{rails_root}/config/bluepill/triggers.rb"
 
 Bluepill.application("humps", :log_file => "#{rails_root}/log/bluepill.log") do |app|
-  alert_email = "info@ridewithgps.com"
+  alert_email = "alerts@rwgps.com"
   app.working_dir = rails_root
 
   app.process("unicorn") do |process|

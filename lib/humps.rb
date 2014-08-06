@@ -124,11 +124,26 @@ class Humps
   ########## base methods ############33333
   def self.nn(hdr, x, y, bytes, pack)
     begin
-      #puts hdr
-      x_offset = ((x-hdr[:min_x]) / hdr[:cellsize]).round
-      y_offset = (((hdr[:min_y] + hdr[:cellsize]*(hdr[:ncols]-1)) - y) / hdr[:cellsize]).round
+      x_offset = ((x-hdr[:min_x])/hdr[:cellsize]).round
+      y_offset = (hdr[:ncols]-1-(y-hdr[:min_y])/hdr[:cellsize]).round
+
+      #puts "#{x}, #{hdr[:min_x]}, #{hdr[:cellsize]}: #{(x-hdr[:min_x]) / hdr[:cellsize]}"
+      #puts "#{y}, #{hdr[:min_y]}, #{hdr[:cellsize]}: #{(((hdr[:min_y] + hdr[:cellsize]*(hdr[:ncols]-1)) - y) / hdr[:cellsize])}"
+      #puts "Before doublechecks: #{x_offset},#{y_offset}"# - ele: #{ele}"
+
+      if x_offset < 0
+        x_offset = 0
+      elsif x_offset >= hdr[:nrows]
+        x_offset = hdr[:nrows] - 1
+      end
+      if y_offset < 0
+        y_offset = 0
+      elsif y_offset >= hdr[:ncols]
+        y_offset = hdr[:ncols] - 1
+      end
+      #puts "After  doublechecks: #{x_offset},#{y_offset}"# - ele: #{ele}"
+
       byte_offset = bytes*(x_offset + hdr[:ncols]*y_offset)
-      #puts "#{x_offset},#{y_offset}"# - ele: #{ele}"
       ele = IO.read(hdr[:data_file], bytes, byte_offset).unpack(pack)[0]
       return ele.round(1)
     rescue
@@ -137,10 +152,18 @@ class Humps
   end
 
   def self.bilinear(hdr, x, y, bytes, pack)
-    x_offset_abs = (x - hdr[:min_x]) / hdr[:cellsize]
-    y_offset_abs = ((hdr[:min_y] + hdr[:cellsize]*(hdr[:ncols]-1)) - y) / hdr[:cellsize]
+    x_offset_abs = ((x-hdr[:min_x])/hdr[:cellsize])
+    y_offset_abs = (hdr[:ncols]-1-(y-hdr[:min_y])/hdr[:cellsize])
     x_offset = x_offset_abs.floor
     y_offset = y_offset_abs.floor
+
+    #we are on a tile boundary, get NN ele
+    if x_offset < 0 || x_offset >= hdr[:nrows]-1 ||
+      y_offset < 0 || y_offset >= hdr[:ncols]-1
+      #puts "falling back to nn lookup, x_offset: #{x_offset}, y_offset: #{y_offset}"
+      return self.nn_srtm(x, y)
+    end
+
     x_index = x_offset_abs - x_offset
     y_index = y_offset_abs - y_offset
     num_bytes_to_read = bytes*2
@@ -171,7 +194,7 @@ class Humps
   end
 
   def self.cubic(hdr, x, y, bytes, pack)
-    ty = hdr[:min_y] + hdr[:cellsize] * (hdr[:ncols]-1)
+    ty = hdr[:min_y] + hdr[:cellsize] * (hdr[:ncols])
     x_offset_abs = (x - hdr[:min_x]) / hdr[:cellsize]
     y_offset_abs = (ty - y) / hdr[:cellsize]
     x_offset = x_offset_abs.floor
@@ -210,60 +233,6 @@ class Humps
     #puts row1.inspect
     #puts row0.inspect
     self.cubic_interpolate([i0, i1, i2, i3], y).round(1)
-  end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  def self.test_functions(klass, id)
-    asset = klass.find(id)
-    points = asset.track_points
-    bi_eles, cubic_eles, nn_eles, saved_eles = [], [], [], [], []
-    last = points[0]
-    dist = 0
-    sets = []
-    nn_res, saved_res, bi_res, cubic_res = [], [], [], []
-
-    points.each do |point|
-      saved_eles << ele = point['ele']
-      nn_eles << nn = self.nn_ned(point['lng'], point['lat'])
-      bi_eles << bi = self.bilinear_ned(point['lng'], point['lat'])
-      cubic_eles << cubic = self.cubic_ned(point['lng'], point['lat'])
-
-      dist += Trip.haversine_distance(last['lat'], last['lng'], point['lat'], point['lng'])
-      saved_res << "#{dist}, #{ele}"
-      nn_res << "#{dist}, #{nn}"
-      bi_res << "#{dist}, #{bi}"
-      cubic_res << "#{dist}, #{cubic}"
-
-      last = point
-    end
-
-    s, e = 0, points.length-1
-    plotter = ModelPlotter.new([{:data => saved_res[s..e].join("\n"), :title => 'Saved'}, {:data => nn_res[s..e].join("\n"), :title => 'Nearest'}, {:data => bi_res[s..e].join("\n"), :title => 'Bilinear'}, {:data => cubic_res[s..e].join("\n"), :title => 'Cubic'}], 'plotfile.plot', 'Elevations Oh Mai!', 'Distance', 'Elevation', 5000, 4000)
-    plotter.plot
-
-    bi_gain, bi_loss = GainLoss.calculate(bi_eles)
-    cubic_gain, cubic_loss = GainLoss.calculate(cubic_eles)
-    nn_gain, nn_loss = GainLoss.calculate(nn_eles)
-    saved_gain, saved_loss = GainLoss.calculate(saved_eles)
-
-    puts "nearest neighbor gain/loss: #{nn_gain}, #{nn_loss}"
-    puts "bilinear gain/loss: #{bi_gain}, #{bi_loss}"
-    puts "cubic gain/loss: #{cubic_gain}, #{cubic_loss}"
-    puts "saved gain/loss: #{saved_gain}, #{saved_loss}"
-    puts "saved smoothed gain/loss: #{asset.elevation_gain}, #{asset.elevation_loss}"
   end
 
   def self.get_grid(ll_x, ll_y, ur_x, ur_y, num_x, num_y)
@@ -311,18 +280,32 @@ class Humps
       #ok, so it took me a while to figure this out, but these aren't too magic
       #of numbers...each tile doesn't start on a clean number.  The min-y of
       #a tile may be 46.999861.  So we have to offset our number by the remainder.
-      x_offset = x.floor.abs
-      y_offset = y.floor.abs
-      fn_base = "#{aster_path}/ASTGTM_#{n}%02d#{e}%03d_dem" % [y_offset, x_offset]
+      filex = x.floor.abs
+      filey = y.floor.abs
+      fn_base = "#{aster_path}/ASTGTM_#{n}%02d#{e}%03d_dem" % [filex, filey]
     when :srtm
-      #these aren't that magical, we have a 5 degree tile system so we have to
-      #do a little math to make sure we chunk by degrees of five.  The magic looking
-      #offset numbers are because each tile does not start/end on a clean decimal
-      #boundary, so we have to offset by the amount of overlap between degrees.
-      #filex = ((x + 179.999584) / 5.0).ceil
-      #filey = 24 - ((y + 60.0004168) / 5.0).floor
-      filex = ((x + 180 + (5/6000.0)) / 5.0).ceil
-      filey = (24 - ((y + 60 + (5/6000.0)) / 5.0)).ceil
+      #SRTM tiles are indexed from upper left corner. tile (1,1) is (-180,60)
+      #SRTM tiles do not overlap on boundaries. 6000 rows means 0..5999 cells
+      #when performing NN lookups, we might get cell 5999.5, which rolls over
+      #our tile's boundary, so we embed some boundary math using half cellsize,
+      #proactively returning the next tile if needed. The NN lookup is smart
+      #about boundary edges, having logic to correct 5999.5 to 5999, etc.
+      halfcell = 5.0/6000/2
+      cutoff = 5 - halfcell
+
+      filex, remainder = (185+x).divmod(5.0)
+      #puts "filex: #{filex}, remainder: #{remainder}, 5-halfcell: #{5-halfcell}"
+      if remainder > cutoff #no overlap in SRTM, so nearest neighbor is on next file
+        filex += 1
+      end
+
+      filey, remainder = (60+y).divmod(5.0)
+      filey = 24 - filey #origin is -180,60 so we must inverse (as opposed to origin at -180,-60)
+      #puts "filey: #{filey}, remainder: #{remainder}, 5-halfcell: #{5-halfcell}"
+      if remainder > cutoff
+        filey -= 1
+      end
+
       fn_base = "#{srtm_path}/srtm_%.2d_%.2d" % [filex, filey]
     when :ned
       return nil if x > 0 || y < 0 #we only have a certain range in the NED

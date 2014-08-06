@@ -282,7 +282,7 @@ class Humps
       #a tile may be 46.999861.  So we have to offset our number by the remainder.
       filex = x.floor.abs
       filey = y.floor.abs
-      fn_base = "#{ASTER_PATH}ASTGTM_#{n}%02d#{e}%03d_dem" % [filex, filey]
+      fn_base = "#{aster_path}/ASTGTM_#{n}%02d#{e}%03d_dem" % [filex, filey]
     when :srtm
       #SRTM tiles are indexed from upper left corner. tile (1,1) is (-180,60)
       #SRTM tiles do not overlap on boundaries. 6000 rows means 0..5999 cells
@@ -306,12 +306,12 @@ class Humps
         filey -= 1
       end
 
-      fn_base = "#{SRTM_PATH}srtm_%.2d_%.2d" % [filex, filey]
+      fn_base = "#{srtm_path}/srtm_%.2d_%.2d" % [filex, filey]
     when :ned
       return nil if x > 0 || y < 0 #we only have a certain range in the NED
       x_offset = x.abs.ceil
       y_offset = y.abs.ceil
-      fn_base = NED_PATH + "dem#{x_offset}#{y_offset}"
+      fn_base = "#{ned_path}/dem#{x_offset}#{y_offset}"
     else
       return nil
     end

@@ -282,7 +282,7 @@ class Humps
       #a tile may be 46.999861.  So we have to offset our number by the remainder.
       filex = x.floor.abs
       filey = y.floor.abs
-      fn_base = "#{aster_path}/ASTGTM_#{n}%02d#{e}%03d_dem" % [filex, filey]
+      fn_base = "#{aster_path}/ASTGTM_#{n}%02d#{e}%03d_dem" % [filey, filex]
     when :srtm
       #SRTM tiles are indexed from upper left corner. tile (1,1) is (-180,60)
       #SRTM tiles do not overlap on boundaries. 6000 rows means 0..5999 cells

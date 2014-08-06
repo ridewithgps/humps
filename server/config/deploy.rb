@@ -5,6 +5,7 @@ default_run_options[:pty] = true
 set :repository,  "git@github.com:ridewithgps/humps.git"
 set :scm, :git
 set :deploy_via, :remote_cache
+set :normalize_asset_timestamps, false
 #use our local ssh key, not server.  no need to manage
 #a bunch of server keys in github
 ssh_options[:forward_agent] = true
@@ -31,7 +32,7 @@ after :deploy do
 end
 
 after "deploy:update_code" do
-  %w{/log /tmp}.each do |file|
+  %w{/log /tmp /vendor}.each do |file|
     run "ln -nfs #{shared_path}#{file} #{release_path}/server#{file}"
   end
 end
@@ -71,5 +72,18 @@ namespace :deploy do
   desc "Restart application"
   task :restart, :roles => :app, :except => { :no_release => true } do
     unicorn.restart
+  end
+
+  task :bundle_install do
+    # using some ideas from https://github.com/carlhuda/bundler/blob/master/lib/bundler/deployment.rb
+    bundle_flags = "--deployment --quiet"
+    bundle_dir = File.join(fetch(:shared_path), 'vendor', 'bundle')
+    args = ["--path #{bundle_dir}"]
+    args << "--without development test"
+    args << bundle_flags
+    # before we use '--without development test' need to make sure
+    # jenkins can install test gems. once we use the without i think
+    # we can remove the RAILS_ENV check in Gemfile
+    run "cd #{current_path}/server && bundle install #{args.join(' ')}"
   end
 end

@@ -1,13 +1,9 @@
 class HumpServer < Sinatra::Base
   configure do
     db_settings = YAML.load(File.read('config/pg.yml'))
-    db = db_settings[settings.environment.to_s]
-    set :conn, PG.connect(
-      hostaddr: db['host'],
-      port: db['port'],
-      user: db['user'],
-      dbname: db['name']
-    )
+    dbs = db_settings[settings.environment.to_s]
+
+    set :conn, DbConnector.new(dbs)
   end
 
   get '/' do
@@ -84,11 +80,11 @@ class HumpServer < Sinatra::Base
     lat = params[:lat]
     callback = params.delete('callback')
 
-    sql = "SELECT tzid FROM timezone WHERE ST_Within(ST_SetSRID(ST_Point(#{lng}, #{lat}), 4326), geom);"
+    sql = "SELECT tzid FROM tz_world WHERE ST_Within(ST_Point(#{lng}, #{lat}), geom);"
     begin
       result = settings.conn.exec(sql).first
     rescue
-      settings.conn.reset
+      settings.conn.reset_connection
       result = settings.conn.exec(sql).first
     end
     response = if result

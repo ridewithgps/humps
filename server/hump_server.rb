@@ -76,8 +76,8 @@ class HumpServer < Sinatra::Base
   end
 
   get '/timezone.?:format?' do
-    lng = params[:lng]
-    lat = params[:lat]
+    lng = settings.conn.escape_string(params[:lng])
+    lat = settings.conn.escape_string(params[:lat])
     callback = params.delete('callback')
 
     sql = "SELECT tzid FROM tz_world WHERE ST_Within(ST_Point(#{lng}, #{lat}), geom);"

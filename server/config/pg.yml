@@ -1,6 +1,6 @@
 production:
   - 
-    host: 10.0.0.30
+    host: 10.0.0.40
     port: 5432
     user: gisuser
     name: timezones

@@ -76,8 +76,16 @@ class HumpServer < Sinatra::Base
   end
 
   get '/timezone.?:format?' do
-    lng = settings.conn.escape_string(params[:lng])
-    lat = settings.conn.escape_string(params[:lat])
+    #escape_string relies on connection to db, which if lost tosses an error
+    begin
+      lng = settings.conn.escape_string(params[:lng])
+      lat = settings.conn.escape_string(params[:lat])
+    rescue
+      settings.conn.reset_connection
+      lng = settings.conn.escape_string(params[:lng])
+      lat = settings.conn.escape_string(params[:lat])
+    end
+
     callback = params.delete('callback')
     dataset = params.delete('dataset') || 'tz_world'
 

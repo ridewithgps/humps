@@ -79,8 +79,18 @@ class HumpServer < Sinatra::Base
     lng = settings.conn.escape_string(params[:lng])
     lat = settings.conn.escape_string(params[:lat])
     callback = params.delete('callback')
+    dataset = params.delete('dataset') || 'tz_world'
 
-    sql = "SELECT tzid FROM tz_world WHERE ST_Within(ST_Point(#{lng}, #{lat}), geom);"
+    if dataset == 'tz_world'
+      table = 'tz_world'
+      col = 'tzid'
+    else
+      table = 'ne_10m_time_zones'
+      col = 'tz_name1st'
+    end
+
+    sql = "SELECT #{col} FROM #{table} WHERE ST_Within(ST_Point(#{lng}, #{lat}), geom);"
+
     begin
       result = settings.conn.exec(sql).first
     rescue
@@ -88,7 +98,7 @@ class HumpServer < Sinatra::Base
       result = settings.conn.exec(sql).first
     end
     response = if result
-      {tzid: result['tzid']}
+      {tzid: result[col]}
     else
       {error: 'Could not find a timezone with that latitude and longitude'}
     end

@@ -76,42 +76,19 @@ class HumpServer < Sinatra::Base
   end
 
   get '/timezone.?:format?' do
-    #escape_string relies on connection to db, which if lost tosses an error
-    begin
-      lng = settings.conn.escape_string(params[:lng])
-      lat = settings.conn.escape_string(params[:lat])
-    rescue
-      settings.conn.reset_connection
-      lng = settings.conn.escape_string(params[:lng])
-      lat = settings.conn.escape_string(params[:lat])
+    lat = params[:lat]
+    lng = params[:lng]
+    unless lat && lat.size > 0 && lng && lng.size > 0
+      return handle_error(422, "Missing 'lat' or 'lng' params")
     end
 
-    callback = params.delete('callback')
-    dataset = params.delete('dataset') || 'tz_world'
-
-    if dataset == 'tz_world'
-      table = 'tz_world'
-      col = 'tzid'
+    if result = get_timezone(lat, lng, params[:dataset])
+      response = { tzid: result }
     else
-      table = 'ne_10m_time_zones'
-      col = 'tz_name1st'
+      return handle_error(404, "Could not find a timezone with that latitude and longitude")
     end
 
-    sql = "SELECT #{col} FROM #{table} WHERE ST_Within(ST_Point(#{lng}, #{lat}), geom);"
-
-    begin
-      result = settings.conn.exec(sql).first
-    rescue
-      settings.conn.reset_connection
-      result = settings.conn.exec(sql).first
-    end
-    response = if result
-      {tzid: result[col]}
-    else
-      {error: 'Could not find a timezone with that latitude and longitude'}
-    end
-
-    if callback
+    if callback = params[:callback]
       content_type :js
       return "#{callback}(#{response.to_json})"
     end
@@ -124,4 +101,55 @@ class HumpServer < Sinatra::Base
 
     return response.to_json
   end
+
+  error DbConnector::ConnectionFailedError do
+    handle_error(502, "Sorry, we couldn't connect to the timezone database")
+  end
+
+  error do
+    handle_error(500, "Sorry, something went wrong")
+  end
+
+  private
+
+  def handle_error(code, message)
+    status(code)
+    body = { error: message }.to_json
+
+    if callback = params[:callback]
+      content_type(:js)
+      body = "#{callback}(#{body.to_json})"
+    else
+      content_type(:json)
+    end
+
+    body
+  end
+
+  def get_timezone(lat, lng, dataset = "tz_world")
+    if dataset == 'tz_world'
+      table = 'tz_world'
+      col = 'tzid'
+    else
+      table = 'ne_10m_time_zones'
+      col = 'tz_name1st'
+    end
+
+    retried = false
+    begin
+      lng = settings.conn.conn.escape_string(lat)
+      lat = settings.conn.conn.escape_string(lng)
+      sql = "SELECT #{col} FROM #{table} WHERE ST_Within(ST_Point(#{lng}, #{lat}), geom);"
+      result = settings.conn.conn.exec(sql).first&.[](col)
+    rescue
+      if retried
+        raise
+      else
+        settings.conn.reset_connection
+        retry
+      end
+    end
+    result
+  end
+
 end

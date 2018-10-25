@@ -1,10 +1,10 @@
 production:
-  - 
+  -
     host: 10.0.0.40
     port: 5432
     user: gisuser
     name: timezones
-  - 
+  -
     host: 10.0.0.14
     port: 5432
     user: gisuser
@@ -13,5 +13,5 @@ development:
   -
     host: 127.0.0.1
     port: 5432
-    user: rwgps
+    user: gisuser
     name: timezones

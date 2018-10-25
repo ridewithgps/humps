@@ -1,17 +1,20 @@
 require 'pg'
 
 class DbConnector
-  attr_accessor :conn
+  class ConnectionFailedError < RuntimeError; end
 
   def initialize(args)
     @servers = args
     @connect_timeout = 2
     @global_timeout = (@servers.length+1) * @connect_timeout
-    @conn = attempt_connection
+  end
+
+  def conn
+    @conn ||= attempt_connection
   end
 
   def reset_connection
-    @conn.close if @conn
+    @conn.close if @conn && @conn.status == PG::Constants::CONNECTION_OK
     @conn = attempt_connection
   end
 
@@ -32,7 +35,7 @@ class DbConnector
         attempt_connection
       end
     else
-      raise "No available server to connect to"
+      raise ConnectionFailedError.new("No available server to connect to")
     end
   end
 
@@ -45,13 +48,5 @@ class DbConnector
       end
     end
     nil
-  end
-
-  def method_missing(m, *args, &block)
-    if @conn.nil?
-      @conn = attempt_connection
-    end
-
-    @conn.send(m, *args, &block)
   end
 end

@@ -137,8 +137,8 @@ class HumpServer < Sinatra::Base
 
     retried = false
     begin
-      lng = settings.conn.conn.escape_string(lat)
-      lat = settings.conn.conn.escape_string(lng)
+      lat = settings.conn.conn.escape_string(lat)
+      lng = settings.conn.conn.escape_string(lng)
       sql = "SELECT #{col} FROM #{table} WHERE ST_Within(ST_Point(#{lng}, #{lat}), geom);"
       result = settings.conn.conn.exec(sql).first&.[](col)
     rescue

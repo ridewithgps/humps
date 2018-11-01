@@ -1,6 +1,5 @@
 worker_processes 2
 
-
 stderr_path File.join(File.dirname(__FILE__), '../log/unicorn.stderr.log')
 stdout_path File.join(File.dirname(__FILE__), '../log/unicorn.stdout.log')
 preload_app true
@@ -12,7 +11,7 @@ timeout 40
 #listen '/home/kingcu/ridewithgps/tmp/sockets/unicorn.sock', :backlog => 1024
 listen '0.0.0.0:4002', :tcp_nopush => true, :backlog => 1024
 
-pid File.join(File.dirname(__FILE__), '../tmp/pids/unicorn.pid')
+pid File.join("/var/run/humps/humps-unicorn.pid")
 
 before_fork do |server, worker|
   # This allows a new master process to incrementally

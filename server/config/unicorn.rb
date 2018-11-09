@@ -11,7 +11,7 @@ timeout 40
 #listen '/home/kingcu/ridewithgps/tmp/sockets/unicorn.sock', :backlog => 1024
 listen '0.0.0.0:4002', :tcp_nopush => true, :backlog => 1024
 
-pid File.join("/var/run/humps/humps-unicorn.pid")
+pid "/var/www/humps/current/server/tmp/pids/unicorn.pid"
 
 before_fork do |server, worker|
   # This allows a new master process to incrementally

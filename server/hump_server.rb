@@ -145,6 +145,7 @@ class HumpServer < Sinatra::Base
       if retried
         raise
       else
+        retried = true
         settings.conn.reset_connection
         retry
       end

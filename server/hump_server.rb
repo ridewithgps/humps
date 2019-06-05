@@ -55,24 +55,11 @@ class HumpServer < Sinatra::Base
   end
 
   get '/get_eles' do
-    callback = params.delete('callback')
-    lats = params[:lats].split(',').collect { |n| n.to_f }
-    lngs = params[:lngs].split(',').collect { |n| n.to_f }
-    eles = []
+    return get_eles
+  end
 
-    #this is a super shitty way to do it; i should make a new method
-    #which doesn't pull a new header for each point
-    (0..lngs.size-1).each do |i|
-      eles << Humps.get_ele(lngs[i], lats[i])
-    end
-
-    if callback
-      content_type :js
-      return "#{callback}(#{eles.to_json})"
-    else
-      content_type :json
-      return eles.to_json
-    end
+  post '/get_eles' do
+    return get_eles
   end
 
   get '/timezone.?:format?' do
@@ -111,6 +98,26 @@ class HumpServer < Sinatra::Base
   end
 
   private
+  def get_eles
+    callback = params.delete('callback')
+    lats = params[:lats].split(',').collect { |n| n.to_f }
+    lngs = params[:lngs].split(',').collect { |n| n.to_f }
+    eles = []
+
+    #this is a super shitty way to do it; i should make a new method
+    #which doesn't pull a new header for each point
+    (0..lngs.size-1).each do |i|
+      eles << Humps.get_ele(lngs[i], lats[i])
+    end
+
+    if callback
+      content_type :js
+      return "#{callback}(#{eles.to_json})"
+    else
+      content_type :json
+      return eles.to_json
+    end
+  end
 
   def handle_error(code, message)
     status(code)

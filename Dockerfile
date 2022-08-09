@@ -1,6 +1,6 @@
 # Dockerfile
 
-FROM ruby:2.7.4
+FROM ruby:2.7.6
 
 ENV ROOTDIR=/var/www/humps/current
 ENV WORKDIR=$ROOTDIR/server

@@ -2,3 +2,4 @@
 *.swp
 *.log
 *.pid
+server/db/geo-ip.mmdb

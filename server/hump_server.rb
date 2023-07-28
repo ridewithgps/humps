@@ -2,8 +2,11 @@ class HumpServer < Sinatra::Base
   configure do
     db_settings = YAML.load(File.read('config/pg.yml'))
     dbs = db_settings[settings.environment.to_s]
-
     set :conn, DbConnector.new(dbs)
+
+    if File.exist?('db/geo-ip.mmdb')
+      set :geoipdb, MaxMind::GeoIP2::Reader.new('db/geo-ip.mmdb')
+    end
   end
 
   get '/' do
@@ -89,6 +92,26 @@ class HumpServer < Sinatra::Base
     return response.to_json
   end
 
+  get '/geoip/:ip' do
+    if settings.respond_to?(:geoipdb)
+      record = settings.geoipdb.city(params[:ip])
+
+      {
+        country_code: record.country.iso_code,
+        country: record.country.name,
+        admin_area: record.most_specific_subdivision.name,
+        admin_area_code: record.most_specific_subdivision.iso_code,
+        city: record.city.name,
+        lat: record.location.latitude,
+        lng: record.location.longitude
+      }.to_json
+    else
+      handle_error(502, 'Sorry, unable to connect to the Geo IP database')
+    end
+  rescue IPAddr::InvalidAddressError
+    handle_error(422, 'Invalid IP address')
+  end
+
   error DbConnector::ConnectionFailedError do
     handle_error(502, "Sorry, we couldn't connect to the timezone database")
   end
@@ -98,6 +121,7 @@ class HumpServer < Sinatra::Base
   end
 
   private
+
   def get_eles
     callback = params.delete('callback')
     lats = params[:lats].split(',').collect { |n| n.to_f }

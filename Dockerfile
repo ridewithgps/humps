@@ -6,7 +6,7 @@ ENV ROOTDIR=/var/www/humps/current
 ENV WORKDIR=$ROOTDIR/server
 COPY . $ROOTDIR
 WORKDIR $WORKDIR
-RUN gem install bundler:1.16.2
+RUN gem install bundler:2.4.17
 RUN cd $WORKDIR;bundle install
 RUN mkdir -p $WORKDIR/tmp/pids $WORKDIR/log
 

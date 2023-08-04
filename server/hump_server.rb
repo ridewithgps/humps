@@ -1,11 +1,13 @@
 class HumpServer < Sinatra::Base
+  GEOIP_DB_PATH = '/var/gisdata/geoip/GeoIP2-City.mmdb'
+
   configure do
     db_settings = YAML.load(File.read('config/pg.yml'))
     dbs = db_settings[settings.environment.to_s]
     set :conn, DbConnector.new(dbs)
 
-    if File.exist?('db/geo-ip.mmdb')
-      set :geoipdb, MaxMind::GeoIP2::Reader.new('db/geo-ip.mmdb')
+    if File.exist?(GEOIP_DB_PATH)
+      set :geoipdb, MaxMind::GeoIP2::Reader.new(GEOIP_DB_PATH)
     end
   end
 

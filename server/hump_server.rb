@@ -101,9 +101,9 @@ class HumpServer < Sinatra::Base
       {
         country_code: record.country.iso_code,
         country: record.country.name,
-        admin_area: record.most_specific_subdivision.name,
-        admin_area_code: record.most_specific_subdivision.iso_code,
-        city: record.city.name,
+        administrative_area: record.most_specific_subdivision.name,
+        administrative_area_code: record.most_specific_subdivision.iso_code,
+        locality: record.city.name,
         lat: record.location.latitude,
         lng: record.location.longitude
       }.to_json

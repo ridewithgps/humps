@@ -1,7 +1,9 @@
 source 'https://rubygems.org'
 
-gem 'unicorn'
-gem 'sinatra'
-gem 'pg'
-gem 'json'
-gem 'yajl-ruby'
+gem 'json', '2.6.3'
+gem 'yajl-ruby', '1.4.3'
+
+gem 'unicorn', '6.1.0'
+gem 'sinatra', '3.0.6'
+gem 'pg', '1.5.3'
+gem 'maxmind-geoip2', '1.1.0'

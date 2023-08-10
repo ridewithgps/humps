@@ -99,19 +99,22 @@ class HumpServer < Sinatra::Base
       record = settings.geoipdb.city(params[:ip])
 
       {
-        country_code: record.country.iso_code,
-        country: record.country.name,
-        administrative_area: record.most_specific_subdivision.name,
-        administrative_area_code: record.most_specific_subdivision.iso_code,
-        locality: record.city.name,
-        lat: record.location.latitude,
-        lng: record.location.longitude
+        country_code: record.country&.iso_code,
+        country: record.country&.name,
+        administrative_area: record.most_specific_subdivision&.name,
+        administrative_area_code: record.most_specific_subdivision&.iso_code,
+        locality: record.city&.name,
+        postal_code: record.postal&.code,
+        lat: record.location&.latitude,
+        lng: record.location&.longitude
       }.to_json
     else
       handle_error(502, 'Sorry, unable to connect to the Geo IP database')
     end
   rescue IPAddr::InvalidAddressError
     handle_error(422, 'Invalid IP address')
+  rescue MaxMind::GeoIP2::AddressError
+    handle_error(404, 'Address not found')
   end
 
   error DbConnector::ConnectionFailedError do

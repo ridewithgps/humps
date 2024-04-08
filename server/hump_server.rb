@@ -1,10 +1,15 @@
 class HumpServer < Sinatra::Base
   GEOIP_DB_PATH = '/var/gisdata/geoip/GeoIP2-City.mmdb'
 
+
   configure do
     db_settings = YAML.load(File.read('config/pg.yml'))
     dbs = db_settings[settings.environment.to_s]
     set :conn, DbConnector.new(dbs)
+
+    register Sinatra::Cors
+    set :allow_origin, "*"
+    set :allow_methods, "GET, HEAD, POST"
 
     if File.exist?(GEOIP_DB_PATH)
       set :geoipdb, MaxMind::GeoIP2::Reader.new(GEOIP_DB_PATH)

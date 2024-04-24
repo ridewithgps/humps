@@ -1,14 +1,11 @@
 worker_processes 2
 
-stderr_path File.join(File.dirname(__FILE__), '../log/unicorn.stderr.log')
-stdout_path File.join(File.dirname(__FILE__), '../log/unicorn.stdout.log')
 preload_app true
 
-# Restart any workers that haven't responded in 30 seconds
+# Restart any workers that haven't responded in 40 seconds
 timeout 40
 
 # Listen on a Unix data socket
-#listen '/home/kingcu/ridewithgps/tmp/sockets/unicorn.sock', :backlog => 1024
 listen '0.0.0.0:4002', :tcp_nopush => true, :backlog => 1024
 
 pid "/var/www/humps/current/server/tmp/pids/unicorn.pid"

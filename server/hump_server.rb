@@ -10,6 +10,7 @@ class HumpServer < Sinatra::Base
     register Sinatra::Cors
     set :allow_origin, "*"
     set :allow_methods, "GET, HEAD, POST"
+    set :allow_headers, "content-type,x-requested-with"
 
     if File.exist?(GEOIP_DB_PATH)
       set :geoipdb, MaxMind::GeoIP2::Reader.new(GEOIP_DB_PATH)

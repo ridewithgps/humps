@@ -134,8 +134,8 @@ class HumpServer < Sinatra::Base
 
   def get_eles
     callback = params.delete('callback')
-    lats = params[:lats].split(',').collect { |n| n.to_f }
-    lngs = params[:lngs].split(',').collect { |n| n.to_f }
+    lats = params[:lats]&.split(',')&.collect { |n| n.to_f } || []
+    lngs = params[:lngs]&.split(',')&.collect { |n| n.to_f } || []
     eles = []
 
     #this is a super shitty way to do it; i should make a new method

@@ -6,9 +6,9 @@ preload_app true
 timeout 40
 
 # Listen on a Unix data socket
-listen '0.0.0.0:4002', :tcp_nopush => true, :backlog => 1024
+listen '0.0.0.0:4002', tcp_nopush: true, backlog: 1024
 
-pid "/var/www/humps/current/server/tmp/pids/unicorn.pid"
+pid "/tmp/pids/unicorn.pid"
 
 before_fork do |server, worker|
   # This allows a new master process to incrementally

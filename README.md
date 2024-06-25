@@ -6,6 +6,13 @@ Humps expects your DEMs to be GridFloat, which is a simple binary grid of elevat
 
 This library is in use at [ridewithgps](http://ridewithgps.com) and is tailored towards our elevation datasets.  Meaning, there are a bunch of hardcoded things in here that may or may not apply to your elevation dataset. For example, we just updated our SRTM dataset and the number of rows/columns in each tile changed, necessitating the change of some hardcoded values used to lookup header files.  At some point that stuff will all be extracted out or made generic, but that day is not today.
 
+# Run locally with Docker
+
+```bash
+docker build --no-cache -t humps -f Dockerfile.development .
+docker run -it --rm --name humps -v ./server:/var/www/humps/current/server -p 127.0.0.1:4002:4002 humps
+```
+
 ## GeoIP
 
 Humps also does GeoIP queries using MaxMind's GeoIP2 City database [found here](https://www.maxmind.com/en/geoip2-city). The database is a binary file and needs to be manually added here: `server/db/geo-ip.mmdb`.

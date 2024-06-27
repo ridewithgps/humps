@@ -1,10 +1,11 @@
-FROM ruby:2.7.6
+FROM ruby:3.3.3
+ENV RUBY_YJIT_ENABLE=1
 
 ENV ROOTDIR=/var/www/humps/current
 ENV WORKDIR=$ROOTDIR/server
 COPY . $ROOTDIR
 WORKDIR $WORKDIR
-RUN gem install bundler:2.4.17
+RUN gem install bundler:2.5.14
 RUN cd $WORKDIR;bundle install
 RUN mkdir -p /tmp/pids $WORKDIR/log
 

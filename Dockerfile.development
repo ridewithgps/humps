@@ -1,4 +1,4 @@
-FROM ruby:2.7.6
+FROM ruby:3.3.3
 
 ENV ROOTDIR=/var/www/humps/current
 ENV WORKDIR=$ROOTDIR/server
@@ -12,7 +12,7 @@ RUN mkdir -p /tmp/pids $WORKDIR/log
 COPY server/Gemfile .
 COPY server/Gemfile.lock .
 
-RUN gem install bundler:2.4.17
+RUN gem install bundler:2.5.14
 RUN cd $WORKDIR;bundle install
 
 VOLUME /var/gisdata

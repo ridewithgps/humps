@@ -1,4 +1,5 @@
 FROM ruby:3.3.3
+ENV RUBY_YJIT_ENABLE=1
 
 ENV ROOTDIR=/var/www/humps/current
 ENV WORKDIR=$ROOTDIR/server

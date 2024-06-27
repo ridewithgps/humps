@@ -1,7 +1,6 @@
 class HumpServer < Sinatra::Base
   GEOIP_DB_PATH = '/var/gisdata/geoip/GeoIP2-City.mmdb'
 
-
   configure do
     db_settings = YAML.load(File.read('config/pg.yml'))
     dbs = db_settings[settings.environment.to_s]

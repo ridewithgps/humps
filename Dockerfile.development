@@ -1,0 +1,24 @@
+FROM ruby:2.7.6
+
+ENV ROOTDIR=/var/www/humps/current
+ENV WORKDIR=$ROOTDIR/server
+
+WORKDIR $ROOTDIR
+RUN mkdir -p $ROOTDIR/lib
+COPY ./lib $ROOTDIR/lib/
+
+WORKDIR $WORKDIR
+RUN mkdir -p /tmp/pids $WORKDIR/log
+COPY server/Gemfile .
+COPY server/Gemfile.lock .
+
+RUN gem install bundler:2.4.17
+RUN cd $WORKDIR;bundle install
+
+VOLUME /var/gisdata
+EXPOSE 4002
+
+ENTRYPOINT bundle exec unicorn -c $WORKDIR/config/unicorn.rb -E development $WORKDIR/config-development.ru
+
+
+
